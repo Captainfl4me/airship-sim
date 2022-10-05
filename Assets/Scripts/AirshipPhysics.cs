@@ -28,13 +28,6 @@ public class AirshipPhysics : MonoBehaviour
     void Start()
     {
         _rig = gameObject.GetComponent<Rigidbody>();
-        //Apply lift force
-        Vector3 weightForce = new Vector3(0, -weight * Settings.Gravity, 0);
-
-        Vector3 finalForce = weightForce;
-        _finalForce = finalForce;
-        
-        _rig.centerOfMass = new Vector3(0, -0.4f, 0);
     }
 
     private void Update()
@@ -69,8 +62,7 @@ public class AirshipPhysics : MonoBehaviour
         _rig.AddForceAtPosition(_liftForce, _globalCenterOfVolume);
 
         Vector3 localVelocity = transform.InverseTransformVector(_rig.velocity);
-        Debug.Log(localVelocity);
-        Vector3 airDrag = new Vector3(-Mathf.Sign(localVelocity.x)*Mathf.Pow(localVelocity.x, 2) * 9 * 0.5f, -Mathf.Sign(localVelocity.y)*Mathf.Pow(localVelocity.y, 2) * 9 *0.5f,-Mathf.Sign(localVelocity.z)*Mathf.Pow(localVelocity.z, 2) * 7 * 0.2f) * airMass/2;
+        Vector3 airDrag = new Vector3(-Mathf.Sign(localVelocity.x)*Mathf.Pow(localVelocity.x, 2) * 9 * 1.1f, -Mathf.Sign(localVelocity.y)*Mathf.Pow(localVelocity.y, 2) * 9 * 1.1f,-Mathf.Sign(localVelocity.z)*Mathf.Pow(localVelocity.z, 2) * 1.77f * 0.3f) * airMass/2;
         
         //calculate airResistance
         _rig.AddForce(transform.TransformVector(airDrag));

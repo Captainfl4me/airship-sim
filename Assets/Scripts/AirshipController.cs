@@ -26,10 +26,12 @@ public class AirshipController : MonoBehaviour
         servo4.RotateServo(vertical*80f + horizontal*80f);
 
         float smallGas = Input.GetAxis("SmallGas") * 0.1f;
-        
-        motor1.SetThrottle(smallGas);
-        motor2.SetThrottle(smallGas);
-        motor3.SetThrottle(smallGas);
-        motor4.SetThrottle(smallGas);        
+        float largeGas = Input.GetAxis("LargeGas") * 0.9f;
+
+        float gas = smallGas + largeGas;
+        motor1.SetThrottle(gas);
+        motor2.SetThrottle(gas);
+        motor3.SetThrottle(gas);
+        motor4.SetThrottle(gas);        
     }
 }
