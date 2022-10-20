@@ -5,16 +5,21 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class Rope : MonoBehaviour
 {
-    public Rigidbody attachPoint1;
-    public Rigidbody attachPoint2;
+    public RopeAttachPoint attachPoint;
+    public RopeAttachPoint attachPoint2;
 
     [Header("Rope characteristics")] 
     public int ropeSubdivision = 10;
+
+    public float spring = 1000f;
     public float length = 1f;
+    public float ropeRadius = 0.2f;
+    public float spaceBetweenBone = 0.1f;
     public float kCoeff = 50f;
     public float maxTensionForce = 800f;
-    
-    
+
+    private RopeAttachPoint[] subAttachPoints;
+    private RopeSubdivision[] subdivisions;
 
     private void Awake()
     {
@@ -29,8 +34,8 @@ public class Rope : MonoBehaviour
     // Update is called once per frame
     public void UpdateRope()
     {
-        transform.position = (attachPoint1.transform.position + attachPoint2.transform.position) / 2;
-        
+        transform.position = attachPoint.transform.position;
+
         //Find all children
         int i = 0;
         GameObject[] allChildren = new GameObject[transform.childCount];
@@ -44,33 +49,76 @@ public class Rope : MonoBehaviour
             else
                 Destroy(child.gameObject);
 
-        GameObject cyl = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        cyl.transform.parent = transform;
-        cyl.transform.localPosition = Vector3.zero;
-        cyl.transform.localScale = new Vector3(0.2f, length, 0.2f);
-        cyl.transform.LookAt(attachPoint1.transform);
-        cyl.transform.Rotate(90, 0, 0);
+        float cylHeight = length / (ropeSubdivision+1);
         
-        //setup joints
-        HingeJoint firstJoint = cyl.AddComponent<HingeJoint>();
-        firstJoint.connectedBody = attachPoint1;
+        subAttachPoints = new RopeAttachPoint[ropeSubdivision];
+        subdivisions = new RopeSubdivision[ropeSubdivision+1];
+        for (i = 0; i < ropeSubdivision; i++)
+        {
+            GameObject attach = new GameObject();
+            attach.name = "Attach " + i;
+            attach.transform.parent = transform;
+            attach.transform.localPosition = new Vector3(0, -(cylHeight) * (i + 1), 0);
+            attach.transform.localScale = new Vector3(ropeRadius, cylHeight, ropeRadius);
+            RopeAttachPoint attachComponent = attach.AddComponent<RopeAttachPoint>();
+            attachComponent.mass = 0.01f;
+            subAttachPoints[i] = attachComponent;
 
-        //clear last attach joints
-        HingeJoint[] oldJoints = attachPoint2.gameObject.GetComponents<HingeJoint>();
+        }
+
+        for (i = 0; i < ropeSubdivision + 1; i++)
+        {
+
+            GameObject ropeSub = new GameObject();
+            ropeSub.name = "Rope " + i;
+            ropeSub.transform.parent = transform;
+            RopeSubdivision ropeSubComponent = ropeSub.AddComponent<RopeSubdivision>();
+            ropeSubComponent.length = cylHeight;
+            ropeSubComponent.kSpring = spring;
+            
+            if (i > 0)
+                ropeSubComponent.attachPoint = subAttachPoints[i - 1];
+            else
+                ropeSubComponent.attachPoint = attachPoint;
+            
+            if (i < ropeSubdivision)
+                ropeSubComponent.attachPoint2 = subAttachPoints[i];
+            else
+                ropeSubComponent.attachPoint2 = attachPoint2;
+            subdivisions[i] = ropeSubComponent;
+        }
+/*
+            HingeJoint hingeJoint = cyl.AddComponent<HingeJoint>();
+            hingeJoint.breakForce = maxTensionForce;
+            
+            hingeJoint.useSpring = true;
+            JointSpring localSpring = new JointSpring();
+            localSpring.spring = spring;
+            
+            hingeJoint.spring = localSpring;
+            
+            if (i > 0)
+                hingeJoint.connectedBody = cylinderList[i - 1].GetComponent<Rigidbody>();
+            else
+                hingeJoint.connectedBody = attachPoint.GetComponent<Rigidbody>();
+
+        if (attachPoint2)
+        {
+            attachPoint2.createAttachRope(cylinderList[cylinderList.Length-1].GetComponent<Rigidbody>());
+        }
+
+        //setup joints
+        //clear last attach joint1
+        HingeJoint[] oldJoints = attachPoint.gameObject.GetComponents<HingeJoint>();
         foreach (HingeJoint joint in oldJoints)
             if(Application.isEditor)
                 DestroyImmediate(joint);
             else
                 Destroy(joint);
-        
-        HingeJoint secondJoint = attachPoint2.gameObject.AddComponent<HingeJoint>();
-        secondJoint.connectedBody = cyl.GetComponent<Rigidbody>();
-        
-        //TO-do
-        /*
-         * Mettre joint sur les attach (+ script pour les attaches )
-         * Ici gère uniquement les liens entre petits bouts de corde + longueur de corde
-         */
-         
+        //Add joint from attach point 1 to rope
+        HingeJoint firstJoint = attachPoint.gameObject.AddComponent<HingeJoint>();
+        //firstJoint.connectedBody = ropeRig;
+
+        attachPoint.gameObject.GetComponent<Rigidbody>().isKinematic = true;*/
     }
 }

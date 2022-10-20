@@ -1,25 +1,28 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
+[RequireComponent(typeof(Rigidbody))]
 public class RopeAttachPoint : MonoBehaviour
 {
-    public bool isRigidbodyOnOtherObject = false;
-
-    public Rigidbody OtherRigidbody;
-
+    public bool overrideMass = false;
+    public float mass = 0.01f;
     private Rigidbody _rig;
-    private void Start()
+    private void Awake()
     {
-        if (isRigidbodyOnOtherObject)
-            _rig = OtherRigidbody;
-        else
-            _rig = gameObject.GetComponent<Rigidbody>();
+        _rig = gameObject.GetComponent<Rigidbody>();
+        if(overrideMass)
+            _rig.mass = mass;
+        _rig.useGravity = true;
     }
 
-    public void ApplyRopeForce(Vector3 force)
+    public void createAttachRope(Rigidbody rope)
     {
-        _rig.AddForceAtPosition(force, transform.position);
+        HingeJoint joint = gameObject.AddComponent<HingeJoint>();
+        joint.connectedBody = rope;
+    }
+    
+    public void applyForce(Vector3 force)
+    {
+        _rig.AddForce(force, ForceMode.Impulse);
     }
 }
