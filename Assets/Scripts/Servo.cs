@@ -1,12 +1,10 @@
 using System;
 using UnityEngine;
-using GD.MinMaxSlider;
 
 [ExecuteInEditMode]
 public class Servo : MonoBehaviour
 {
     public RotateAxis rotateAxis = RotateAxis.X;
-    [MinMaxSlider(-180, 180)]
     public Vector2 rotationLimit = new Vector2(-80, 80);
     public float rotationOffset = 0f;
     
